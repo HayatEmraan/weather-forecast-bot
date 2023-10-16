@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admin {
+  id       String  @id @default(uuid())
+  email    String?
+  name     String?
+  photoURL String?
+  role     Boolean @default(false)
+}
+
+model users {
+  id           String        @id @default(uuid())
+  telgram_id   String?
+  firstName    String?
+  lastName     String?
+  username     String?
+  subcriptions subcriptions?
+
+  @@unique([telgram_id, username])
+}
+
+model subcriptions {
+  id      String @id @default(uuid())
+  user_id String @unique
+  user    users  @relation(fields: [user_id], references: [id])
+}
