@@ -1,199 +1,105 @@
 const TelegramBot = require("node-telegram-bot-api");
+const botweather = require("../botoperations/botgetweather");
+const bottime = require("../botoperations/botgettime");
+const botinfo = require("../botoperations/botgetinfo");
+const botcancel = require("../botoperations/botgetcancel");
+const botlocation = require("../botoperations/botgetlocation");
+const botstart = require("../botoperations/botgetstart");
+const exituser = require("../../models/users/exituser");
+const insertuser = require("../../models/users/insertuser");
+const exitlocation = require("../../models/location/findlocation");
+const insertlocation = require("../../models/location/insertlocation");
+const botback = require("../botoperations/botback");
+const botsubscription = require("../botoperations/getsubscription");
+const { subscribe } = require("../../models/subcription/subcribe");
 const token = "6583143962:AAHwTboZHvRYA0LVo5nALYxEqtesThSsHI0";
 const bot = new TelegramBot(token, { polling: true });
 
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start/, async (msg) => {
   const name = msg?.from?.first_name || "there";
   const chatId = msg.chat.id;
-  bot
-    .sendMessage(chatId, "Welcome to Weather Forecast Bot !", {
-      reply_markup: JSON.stringify({
-        remove_keyboard: true,
-      }),
-    })
-    .then(() => {
-      bot.sendMessage(
-        chatId,
-        `Hello ${name} ! \nThis bot can show you the weather and time for any city. To use it, please choose an option below :`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: "Get Weather", callback_data: "get_weather" },
-                { text: "Get Time", callback_data: "get_time" },
-              ],
-              [
-                { text: "Your Information", callback_data: "get_info" },
-                {
-                  text: "Subscription",
-                  callback_data: "get_subscription",
-                },
-              ],
-            ],
-          },
-        }
-      );
-    });
+  const userinfo = msg?.from;
+  const user = {
+    telegram_id: userinfo?.id.toString(),
+    firstName: userinfo?.first_name,
+    lastName: userinfo?.last_name,
+    username: userinfo?.username,
+  };
+  const exitinguser = await exituser(userinfo?.id.toString());
+  if (exitinguser.data) {
+    console.log("exiting user");
+  } else {
+    await insertuser(user);
+  }
+  await botstart(chatId, name, bot);
 });
 
 bot.on("callback_query", async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const data = callbackQuery.data;
   const name = callbackQuery?.from?.first_name || "there";
-  console.log(callbackQuery);
 
   switch (data) {
     case "get_weather":
-      const opts = {
-        reply_markup: JSON.stringify({
-          keyboard: [
-            [
-              {
-                text: "Set Location",
-                request_location: true,
-                callback_data: "get_location",
-              },
-            ],
-          ],
-          resize_keyboard: true,
-          one_time_keyboard: true,
-        }),
-      };
-      const options = {
-        reply_markup: JSON.stringify({
-          inline_keyboard: [
-            [
-              {
-                text: "Cancel",
-                callback_data: "cancel",
-              },
-            ],
-          ],
-          resize_keyboard: true,
-          one_time_keyboard: true,
-        }),
-      };
-      bot
-        .sendMessage(
-          chatId,
-          "<em>N.B. Your location will automatically captured! Provide your location permission by clicking on the button below</em> \n\n<b>Note: This can't be done manually</b>",
-          {
-            parse_mode: "HTML",
-            ...opts,
-          }
-        )
-        .then(() => {
-          bot.sendMessage(
-            chatId,
-            "Please click on the Set Location button or to cancel the request:",
-            {
-              reply_markup: options.reply_markup,
-            }
-          );
-        });
-
+      await botweather(chatId, data, name, bot, callbackQuery);
       break;
     case "get_time":
-      bot.editMessageText(
-        "Please enter the name of the city or send /stop to cancel:",
-        {
-          chat_id: chatId,
-          message_id: callbackQuery.message.message_id,
-          reply_markup: {
-            inline_keyboard: [[{ text: "Back", callback_data: "cancel" }]],
-          },
-        }
-      );
+      await bottime(chatId, data, name, bot, callbackQuery);
       break;
     case "get_info":
-      const username = callbackQuery.from.username;
-      const firstName = callbackQuery.from.first_name || "";
-      const id = callbackQuery.from.id;
-      const lastName = callbackQuery.from.last_name || "";
-      bot.sendMessage(
-        chatId,
-        ` Your ID is ${id} \nYour Name is ${firstName} ${lastName} ! \nYour Username is ${username} \nThank you for using Weather Forecast !`,
-        {
-          reply_markup: {
-            inline_keyboard: [[{ text: "Back", callback_data: "cancel" }]],
-          },
-        }
-      );
+      await botinfo(callbackQuery, chatId, bot);
       break;
     case "cancel":
-      bot
-        .sendMessage(chatId, "Operation canceled.", {
-          reply_markup: JSON.stringify({
-            remove_keyboard: true,
-          }),
-        })
-        .then(() => {
-          bot.sendMessage(
-            chatId,
-            `Hello ${name} ! \nThis bot can show you the weather and time for any city. To use it, please choose an option below :`,
-            {
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    { text: "Get Weather", callback_data: "get_weather" },
-                    { text: "Get Time", callback_data: "get_time" },
-                  ],
-                  [
-                    { text: "Your Information", callback_data: "get_info" },
-                    {
-                      text: "Daily Subscription",
-                      callback_data: "get_subscription",
-                    },
-                  ],
-                ],
-              },
-            }
-          );
-        });
-
+      await botcancel(bot, name, chatId);
       break;
     case "get_location":
-      bot
-        .sendMessage(
-          chatId,
-          "Your location has been captured! You can get the weather now by click Get Weather button. Hurray! Please wait...",
-          {
-            reply_markup: JSON.stringify({
-              remove_keyboard: true,
-            }),
-          }
-        )
-        .then(() => {
-          bot.sendMessage(
-            chatId,
-            `Hello ${name} ! \nThis bot can show you the weather and time for any city. To use it, please choose an option below :`,
-            {
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    { text: "Get Weather", callback_data: "get_weather" },
-                    { text: "Get Time", callback_data: "get_time" },
-                  ],
-                  [
-                    { text: "Your Information", callback_data: "get_info" },
-                    {
-                      text: "Daily Subscription",
-                      callback_data: "get_subscription",
-                    },
-                  ],
-                ],
-              },
-            }
-          );
-        });
+      console.log(chatId);
+      await botlocation(bot, name, chatId);
+      break;
+    case "get_subscription":
+      await botsubscription(callbackQuery, chatId, bot);
+      break;
+    case "get_back":
+      await botback(bot, name, chatId, callbackQuery);
+      break;
+    case "get_unsubscribe":
+      await subscribe(callbackQuery.from.id.toString(), false);
+      await botsubscription(callbackQuery, chatId, bot);
+      break;
+    case "get_subscribe":
+      await subscribe(callbackQuery.from.id.toString(), true);
+      await botsubscription(callbackQuery, chatId, bot);
+      break;
     default:
       break;
   }
 });
 
-bot.on("location", (msg) => {
-  console.log(msg.location.latitude);
-  console.log(msg.location.longitude);
+bot.on("message", async (msg) => {
+  const textlocation =
+    "N.B. Your location will automatically captured! Provide your location permission by clicking on the button below \n" +
+    "\n" +
+    "Note: This can't be done manually";
+  if (msg.location && msg.reply_to_message.text === textlocation) {
+    const latitude = msg.location.latitude;
+    const longitude = msg.location.longitude;
+
+    const locationData = {
+      lat: latitude.toString(),
+      long: longitude.toString(),
+    };
+
+    const userID = msg?.from?.id.toString();
+    const exitinglocation = await exitlocation(userID);
+
+    console.log(exitinglocation);
+    if (exitinglocation.data) {
+      console.log("exiting location");
+    } else {
+      await insertlocation(locationData, userID);
+    }
+    console.log(latitude, longitude);
+  }
 });
 
 module.exports = bot;

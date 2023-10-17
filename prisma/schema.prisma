@@ -11,26 +11,42 @@ datasource db {
 }
 
 model admin {
-  id       String  @id @default(uuid())
-  email    String?
-  name     String?
-  photoURL String?
-  role     Boolean @default(false)
+  id        String   @id @default(uuid())
+  email     String?
+  name      String?
+  photoURL  String?
+  role      Boolean  @default(false)
+  createAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model users {
-  id           String        @id @default(uuid())
-  telgram_id   String?
+  id           String         @id @default(uuid())
+  telegram_id  String?        @unique
   firstName    String?
   lastName     String?
-  username     String?
-  subcriptions subcriptions?
-
-  @@unique([telgram_id, username])
+  username     String?        @unique
+  subcriptions subscriptions?
+  location     location?
+  createAt     DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
-model subcriptions {
-  id      String @id @default(uuid())
-  user_id String @unique
-  user    users  @relation(fields: [user_id], references: [id])
+model location {
+  id          String   @id @default(uuid())
+  lat         String?
+  long        String?
+  telegram_id String   @unique
+  user        users    @relation(fields: [telegram_id], references: [telegram_id])
+  createAt    DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model subscriptions {
+  id          String   @id @default(uuid())
+  subscribed  Boolean  @default(false)
+  telegram_id String   @unique
+  user        users    @relation(fields: [telegram_id], references: [telegram_id])
+  createAt    DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
