@@ -12,8 +12,11 @@ const insertlocation = require("../../models/location/insertlocation");
 const botback = require("../botoperations/botback");
 const botsubscription = require("../botoperations/getsubscription");
 const { subscribe } = require("../../models/subcription/subcribe");
+const findsubscriber = require("../../models/subcription/findsubscriber");
+const getWeatherData = require("./getweather");
 const token = "6583143962:AAHwTboZHvRYA0LVo5nALYxEqtesThSsHI0";
 const bot = new TelegramBot(token, { polling: true });
+const cron = require("node-cron");
 
 bot.onText(/\/start/, async (msg) => {
   const name = msg?.from?.first_name || "there";
@@ -53,7 +56,6 @@ bot.on("callback_query", async (callbackQuery) => {
       await botcancel(bot, name, chatId);
       break;
     case "get_location":
-      console.log(chatId);
       await botlocation(bot, name, chatId);
       break;
     case "get_subscription":
@@ -91,15 +93,50 @@ bot.on("message", async (msg) => {
 
     const userID = msg?.from?.id.toString();
     const exitinglocation = await exitlocation(userID);
-
-    console.log(exitinglocation);
     if (exitinglocation.data) {
       console.log("exiting location");
     } else {
       await insertlocation(locationData, userID);
     }
-    console.log(latitude, longitude);
   }
+});
+
+async function subscriber() {
+  const nothing = await findsubscriber();
+  for (const activeSubscriber of nothing.data) {
+    const userlocation = activeSubscriber?.user?.location;
+    const weather = await getWeatherData(userlocation?.lat, userlocation?.long);
+    console.log(weather);
+    const weatherParagraph = `🌦 ** Weather in ${weather.cityName}, ${weather.country} **
+- Temperature: ${weather.temperature}°C
+- Min Temperature: ${weather.temp_min}°C
+- Max Temperature: ${weather.temp_max}°C
+- Sunrise: ${weather.sunriseLocalTime}
+- Sunset: ${weather.sunsetLocalTime} \n\n<i><b>This is an auto generated Weather Forecast!</b></i>`;
+
+    bot.sendMessage(activeSubscriber?.telegram_id, weatherParagraph, {
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "Get Weather", callback_data: "get_weather" },
+            { text: "Get Time", callback_data: "get_time" },
+          ],
+          [
+            { text: "Your Information", callback_data: "get_info" },
+            {
+              text: "Subscription",
+              callback_data: "get_subscription",
+            },
+          ],
+        ],
+      },
+    });
+  }
+}
+
+cron.schedule("0 */1 * * *", async () => {
+  await subscriber();
 });
 
 module.exports = bot;
