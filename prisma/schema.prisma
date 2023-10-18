@@ -15,8 +15,17 @@ model admin {
   email     String?
   name      String?
   photoURL  String?
-  role      Boolean  @default(false)
+  role      Boolean  @default(true)
   createAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model bot {
+  id        String   @id @default(uuid())
+  name      String?
+  username  String?  @unique
+  api       String?  @unique
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
@@ -26,9 +35,10 @@ model users {
   firstName    String?
   lastName     String?
   username     String?        @unique
+  blocked      Boolean        @default(false)
   subcriptions subscriptions?
   location     location?
-  createAt     DateTime       @default(now())
+  createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 }
 
@@ -37,8 +47,8 @@ model location {
   lat         String?
   long        String?
   telegram_id String   @unique
-  user        users    @relation(fields: [telegram_id], references: [telegram_id])
-  createAt    DateTime @default(now())
+  user        users    @relation(fields: [telegram_id], references: [telegram_id], onUpdate: Cascade)
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
@@ -46,7 +56,7 @@ model subscriptions {
   id          String   @id @default(uuid())
   subscribed  Boolean  @default(false)
   telegram_id String   @unique
-  user        users    @relation(fields: [telegram_id], references: [telegram_id])
-  createAt    DateTime @default(now())
+  user        users    @relation(fields: [telegram_id], references: [telegram_id], onUpdate: Cascade)
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
