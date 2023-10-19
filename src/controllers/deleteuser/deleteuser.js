@@ -12,7 +12,7 @@ async function deleteuser(req, res) {
     });
     return res.status(200).send({ success: true, data: deleteuser });
   } catch (error) {
-    return res.status(500).send({ msg: failed, error: error });
+    return res.status(500).send({ msg: "failed", error: error });
   }
 }
 

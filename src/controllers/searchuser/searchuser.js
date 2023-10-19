@@ -23,7 +23,7 @@ async function searchuser(req, res) {
     });
     return res.status(200).send({ success: true, data: users });
   } catch (error) {
-    return res.status(500).send({ msg: failed, error: error });
+    return res.status(500).send({ msg: "failed", error: error });
   }
 }
 

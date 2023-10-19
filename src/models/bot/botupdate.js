@@ -13,7 +13,7 @@ async function botupdate(botData) {
     };
   } catch (error) {
     return {
-      msg: failed,
+      msg: "failed",
       error: error,
     };
   }

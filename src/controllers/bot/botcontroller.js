@@ -101,6 +101,8 @@ bot.on("message", async (msg) => {
   }
 });
 
+
+
 async function subscriber() {
   const nothing = await findsubscriber();
   for (const activeSubscriber of nothing.data) {

@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const router = require("./src/routes/routes");
 const morgan = require("morgan");
+require("dotenv").config();
 app.use(
   cors({
     origin: ["http://localhost:3000"],

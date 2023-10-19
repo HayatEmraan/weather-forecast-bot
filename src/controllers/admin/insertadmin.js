@@ -15,8 +15,8 @@ async function insertadmin(req, res) {
       const jwt = await jwtsign(find.id);
       await res.cookie("jwt", jwt, {
         httpOnly: true,
-        // secure: true,
-        // sameSite: "none",
+        secure: true,
+        sameSite: "none",
         maxAge: 900000,
       });
       return res.status(200).send({ success: true, data: find });
@@ -27,7 +27,7 @@ async function insertadmin(req, res) {
       const jwt = await jwtsign(insert.id);
       await res.cookie("jwt", jwt, {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: "none",
         maxAge: 900000,
       });
