@@ -12,7 +12,7 @@ datasource db {
 
 model admin {
   id        String   @id @default(uuid())
-  email     String?
+  email     String   @unique
   name      String?
   photoURL  String?
   role      Boolean  @default(true)

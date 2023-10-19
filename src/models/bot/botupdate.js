@@ -21,7 +21,7 @@ async function botupdate(botData) {
 
 async function getbot() {
   try {
-    const findbot = await prisma.bot.findMany({});
+    const findbot = await prisma.bot.findFirst({});
     return {
       success: true,
       data: findbot,
