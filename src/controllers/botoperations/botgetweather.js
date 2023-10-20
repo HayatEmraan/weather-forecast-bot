@@ -1,7 +1,7 @@
 const exitlocation = require("../../models/location/findlocation");
 const getWeatherData = require("../bot/getweather");
 
-const botweather = async (chatId, data, name, bot, callbackQuery) => {
+const botweather = async (chatId, bot, callbackQuery) => {
   const location = await exitlocation(chatId.toString());
   const lat = location?.data?.lat;
   const long = location?.data?.long;

@@ -36,10 +36,12 @@ model users {
   lastName     String?
   username     String?        @unique
   blocked      Boolean        @default(false)
+  visibility   Boolean        @default(true)
   subcriptions subscriptions?
   location     location?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+  blockuser    blockuser?
 }
 
 model location {
@@ -47,7 +49,7 @@ model location {
   lat         String?
   long        String?
   telegram_id String   @unique
-  user        users    @relation(fields: [telegram_id], references: [telegram_id], onUpdate: Cascade)
+  user        users    @relation(fields: [telegram_id], references: [telegram_id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -56,7 +58,13 @@ model subscriptions {
   id          String   @id @default(uuid())
   subscribed  Boolean  @default(false)
   telegram_id String   @unique
-  user        users    @relation(fields: [telegram_id], references: [telegram_id], onUpdate: Cascade)
+  user        users    @relation(fields: [telegram_id], references: [telegram_id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model blockuser {
+  id          String @id @default(uuid())
+  telegram_id String @unique
+  user        users  @relation(fields: [telegram_id], references: [telegram_id])
 }
