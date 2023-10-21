@@ -3,13 +3,26 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 async function botupdate(botData) {
   try {
-    await prisma.bot.deleteMany({});
-    const insert = await prisma.bot.create({
+    const deletebot = prisma.bot.deleteMany({});
+    const insert = prisma.bot.create({
       data: botData,
     });
+    const deletelocation = prisma.location.deleteMany({});
+    const deletesubscriptions = prisma.subscriptions.deleteMany({});
+    const deleteblockuser = prisma.blockuser.deleteMany({});
+    const deleteuers = prisma.users.deleteMany({});
+    const result = prisma.$transaction([
+      deletebot,
+      insert,
+      deletelocation,
+      deletesubscriptions,
+      deleteblockuser,
+      deleteuers,
+    ]);
+
     return {
       success: true,
-      data: insert,
+      data: result,
     };
   } catch (error) {
     return {

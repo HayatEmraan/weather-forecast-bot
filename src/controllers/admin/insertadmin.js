@@ -17,7 +17,7 @@ async function insertadmin(req, res) {
         httpOnly: true,
         secure: true,
         sameSite: "none",
-        maxAge: 900000,
+        maxAge: 3600000,
       });
       return res.status(200).send({ success: true, data: find });
     } else {
@@ -29,7 +29,7 @@ async function insertadmin(req, res) {
         httpOnly: true,
         secure: true,
         sameSite: "none",
-        maxAge: 900000,
+        maxAge: 3600000,
       });
       return res.status(200).send({ success: true, data: insert });
     }
